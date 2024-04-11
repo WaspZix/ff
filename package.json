@@ -1,0 +1,8 @@
+{
+  "main": "ff.js",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "sequelize": "^6.37.2",
+    "sqlite3": "^5.1.7"
+  }
+}
