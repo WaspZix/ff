@@ -4,7 +4,10 @@ node_modules
 /package
 .env
 .env.*
-.config.json
 !.env.example
 .vercel
 .output
+
+.config.json
+src/ignore
+db_queries/tests

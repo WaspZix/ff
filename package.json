@@ -1,7 +1,13 @@
 {
-  "main": "ff.js",
+  "main": "src/ff.js",
+  "scripts": {
+    "start": "NODE_PATH=src/ node src/ff.js"
+  },
+  "type": "module",
   "dependencies": {
+    "@supabase/supabase-js": "^2.42.3",
     "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5",
     "sequelize": "^6.37.2",
     "sqlite3": "^5.1.7"
   }
