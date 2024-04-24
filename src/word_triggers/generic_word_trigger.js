@@ -6,11 +6,20 @@ import { Events } from "discord.js";
 let onGeneralCooldown = false;
 
 export default class GenericWordTrigger {
-  constructor(client, word, xd, cooldown = 2) {
+  constructor(client, words, xd, { id, cooldown, precheck } = {}) {
     this.client = client;
-    this.word = word.toLowerCase();
+    this.words = Array.isArray(words)
+      ? words.map((word) => word.toLowerCase())
+      : [words.toLowerCase()];
     this.xd = xd;
+    this.precheck = precheck
+      ? precheck
+      : (message) => {
+          return true;
+        };
+
     this.cooldown = cooldown ? cooldown * 1000 : 1200;
+    this.id = id ? id : this.words[0];
 
     this.onCooldown = false;
     this.handle = async (message) => {
@@ -18,16 +27,20 @@ export default class GenericWordTrigger {
         return;
       }
 
+      if (!this.precheck(message)) {
+        return;
+      }
+
       if (onGeneralCooldown) {
         console.log(
           "word_triggers/generic: on general cooldown",
-          word,
+          words,
           this.cooldown
         );
         return;
       }
       if (this.onCooldown) {
-        console.log("word_triggers/generic: on cooldown", word, this.cooldown);
+        console.log("word_triggers/generic: on cooldown", words, this.cooldown);
         return;
       }
 
@@ -38,14 +51,18 @@ export default class GenericWordTrigger {
         console.log("word_triggers/generic:", message.words);
       }
 
-      if (message.words.includes(this.word)) {
+      if (this.words.some((word) => message.words.includes(word))) {
+        const triggeringWord = this.words.find((word) =>
+          message.words.includes(word)
+        );
+        console.log("word_triggers/generic: triggering word ", triggeringWord);
         onGeneralCooldown = true;
         setTimeout(() => (onGeneralCooldown = false), 1200);
         this.onCooldown = true;
         setTimeout(() => (this.onCooldown = false), this.cooldown);
 
         const { data, error } = await supabase.rpc("increment_count", {
-          id: word,
+          id: this.id,
           guild_id: message.guild.id,
         });
 
@@ -59,7 +76,11 @@ export default class GenericWordTrigger {
 
         console.log("word_triggers/generic:", data);
 
-        await xd(message, data.count);
+        await xd({
+          message: message,
+          count: data.count,
+          triggeringWord: triggeringWord,
+        });
       }
       return;
     };
