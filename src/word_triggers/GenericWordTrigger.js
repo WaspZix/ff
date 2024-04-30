@@ -1,4 +1,4 @@
-// src/word_triggers/generic_word_trigger.js
+// src/word_triggers/GenericWordTrigger.js
 
 import { supabase } from "../utility/supabase.js";
 import { Events } from "discord.js";
@@ -44,16 +44,9 @@ export default class GenericWordTrigger {
         return;
       }
 
-      if (!message.words) {
-        message.words = message.content
-          .split(/\s+/)
-          .map((e) => e.toLowerCase());
-        console.log("word_triggers/generic:", message.words);
-      }
-
-      if (this.words.some((word) => message.words.includes(word))) {
+      if (this.words.some((word) => message.words().includes(word))) {
         const triggeringWord = this.words.find((word) =>
-          message.words.includes(word)
+          message.words().includes(word)
         );
         console.log("word_triggers/generic: triggering word ", triggeringWord);
         onGeneralCooldown = true;
@@ -76,7 +69,7 @@ export default class GenericWordTrigger {
 
         console.log("word_triggers/generic:", data);
 
-        await xd({
+        await this.xd({
           message: message,
           count: data.count,
           triggeringWord: triggeringWord,
@@ -87,6 +80,6 @@ export default class GenericWordTrigger {
   }
 
   async init() {
-    this.client.on(Events.MessageCreate, this.handle.bind(this));
+    this.client.on(Events.MessageCreate, this.handle);
   }
 }

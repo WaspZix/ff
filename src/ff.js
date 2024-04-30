@@ -1,9 +1,29 @@
 // src/ff.js
 
-import { Client, Events, GatewayIntentBits } from "discord.js";
+import { Client, Events, GatewayIntentBits, Message } from "discord.js";
 import dotenv from "dotenv";
 import initFF from "./word_triggers/ff.js";
-import GenericWordTrigger from "./word_triggers/generic_word_trigger.js";
+import initWordTriggers from "./word_triggers/initTriggers.js";
+import isPrefixCommand from "./prefix_commands/isPrefixCommand.js";
+import handlePrefixCommand from "./prefix_commands/handlePrefixCommand.js";
+import { getWords } from "./utility/getWords.js";
+
+// Create Message.words() function
+Message.prototype.words = function () {
+  if (this.wordsCache) {
+    return this.wordsCache;
+  }
+
+  if (!this.content) {
+    return (this.wordsCache = []);
+  }
+
+  return (this.wordsCache = getWords(this.content));
+
+  // return (this.wordsCache = this.content
+  //   .split(/\s+/)
+  //   .map((e) => e.toLowerCase()));
+};
 
 // Load .env
 dotenv.config();
@@ -18,83 +38,37 @@ const client = new Client({
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildEmojisAndStickers,
     GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildVoiceStates,
   ],
 });
 
-const wawa = new GenericWordTrigger(
-  client,
-  "wawa",
-  (message, count) => {
-    message.channel.send(`the wawa has been lost ff ${count} times GO NEXT`);
-  },
-  { cooldown: 10 }
-);
-const gg = new GenericWordTrigger(
-  client,
-  "gg",
-  ({ message, count }) => {
-    message.channel.send(
-      `the game has been won gg ${count} times :sunglasses:`
+client.on(Events.MessageCreate, async (message) => {
+  if (message.content) {
+    console.log("[ff.js] new message:", message.content, message.words());
+  } else
+    console.log(
+      "[ff.js] new weird message:",
+      message.embeds,
+      message.attachments
     );
-  },
-  { cooldown: 10 }
-);
-
-const fer = new GenericWordTrigger(
-  client,
-  "fer",
-  ({ message, count }) => {
-    if (count % 10 == 0)
-      message.channel.send(`ransom cuando fer x${count} :cold_face:`);
-    else message.channel.send(`dariam cuando fer x${count}`);
-  },
-  {
-    precheck: (message) => {
-      return message.channel.name !== "general";
-    },
+  if (isPrefixCommand(message)) {
+    await handlePrefixCommand(message);
   }
-);
-
-const animals = new GenericWordTrigger(
-  client,
-  ["apes", "pigs", "dogs"],
-  ({ message, count, triggeringWord }) => {
-    message.channel.send(`fokin animals x${count}`);
-  },
-  { id: "animals" }
-);
-
-const animal = new GenericWordTrigger(
-  client,
-  ["ape", "pig", "dog"],
-  ({ message, count, triggeringWord }) => {
-    const tag = message.words.find((word) => word.match(/<@\d+>/));
-    if (tag) {
-      message.channel.send(
-        `${tag} u ${triggeringWord} beyond measurement x${count}`
-      );
-    } else {
-      message.channel.send(
-        `fokin ${triggeringWord} indeed not human x${count}`
-      );
-    }
-  },
-  { id: "ape_pig_dog" }
-);
+});
 
 client.once(Events.ClientReady, async (readyClient) => {
   console.log(`Client ready. Logged in as ${readyClient.user.tag}`);
 
+  // Set username if not already
   if (!(client.user.username === "ff")) client.user.setUsername("ff");
+  // Set avatar if not already
   if (!client.user.avatar) client.user.setAvatar("static/ff_pfp.png");
+  // Set dnd status
   client.user.setStatus("dnd");
-
+  // Initialize FF trigger
   await initFF(client);
-  await wawa.init();
-  await gg.init();
-  await fer.init();
-  await animals.init();
-  await animal.init();
+  // Initialize other word triggers
+  await initWordTriggers(client);
 });
 
 client.login(process.env.BOT_TOKEN);

@@ -11,7 +11,10 @@ const ffsTableExists = async (guild) => {
   });
 
   if (error) {
-    console.error("word_triggers/ff: Error checking for table:", error.message);
+    console.error(
+      "[word_triggers/ff] Error checking for table:",
+      error.message
+    );
     return false;
   }
 
@@ -24,11 +27,11 @@ const createFFsTable = async (guild) => {
   });
 
   if (error) {
-    console.error("word_triggers/ff: Error creating table:", error.message);
+    console.error("[word_triggers/ff] Error creating table:", error.message);
     return false;
   }
 
-  console.log(`word_triggers/ff: Table created for guild with id ${guild.id}`);
+  console.log(`[word_triggers/ff] Table created for guild with id ${guild.id}`);
   return true;
 };
 
@@ -36,7 +39,7 @@ let canLoseFF = true;
 const loseFF = async (message) => {
   if (!canLoseFF) return;
 
-  console.log(`word_triggers/ff: ff waive detected ${message} ???`);
+  console.log(`[word_triggers/ff] ff waive detected ${message} ???`);
 
   const row = await (async () => {
     try {
@@ -57,17 +60,17 @@ const loseFF = async (message) => {
 
       if (error) {
         console.error(
-          "word_triggers/ff: Error inserting message into ffs table:",
+          "[word_triggers/ff] Error inserting message into ffs table:",
           error.message
         );
         return null;
       }
 
-      console.log("word_triggers/ff: Message inserted into ffs table:", data);
+      console.log("[word_triggers/ff] Message inserted into ffs table:", data);
       return data[0];
     } catch (error) {
       console.error(
-        "word_triggers/ff: Error inserting message into ffs table:",
+        "[word_triggers/ff] Error inserting message into ffs table:",
         error.message
       );
       return null;
@@ -107,7 +110,7 @@ export default async function initFF(client) {
       await createFFsTable(guild);
     } else {
       console.log(
-        `word_triggers/ff: Table already exists for guild ${guild.name} with id ${guild.id}`
+        `[word_triggers/ff] Table already exists for guild ${guild.name} with id ${guild.id}`
       );
     }
   }
@@ -116,7 +119,7 @@ export default async function initFF(client) {
     if (message.author.bot) return; // ignore bot messages
 
     const words = message.content.split(/\s+/).map((e) => e.toLowerCase());
-    console.log(words);
+    // console.log(words);
 
     if (canLoseFF && words.includes("ff")) await loseFF(message);
   });

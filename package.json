@@ -5,6 +5,7 @@
   },
   "type": "module",
   "dependencies": {
+    "@discordjs/voice": "^0.16.1",
     "@supabase/supabase-js": "^2.42.3",
     "discord.js": "^14.14.1",
     "dotenv": "^16.4.5",
