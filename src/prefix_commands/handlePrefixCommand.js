@@ -6,6 +6,12 @@ import { EmbedBuilder } from "@discordjs/builders";
 import { joinVoiceChannel } from "@discordjs/voice";
 import disconnectOnInactivity from "../utility/disconnectOnInactivity.js";
 import oeis from "./oeis.js";
+import ds3 from "./ds3.js";
+import { DirectoryTrackPlayer } from "../player/DirectoryTrackPlayer.js";
+import { readdirSync } from "fs";
+import { tree } from "../utility/tree.js";
+import { dirname, join, relative, resolve } from "path";
+import { fileURLToPath } from "url";
 
 let commands = new Map();
 
@@ -94,6 +100,33 @@ commands.set("help", listCommands);
 commands.set("commands", listCommands);
 
 commands.set("oeis", oeis);
+// commands.set(
+//   "ds3",
+//   (message) => new DirectoryTrackPlayer("static/ds3", message.guildId).interact
+// );
+
+const commandDirTree = tree("src/prefix_commands/commands");
+const loadCommands = async (node) => {
+  node.files.forEach(async (filename) => {
+    const filepath = resolve(join(node.path, filename));
+
+    // return;
+    const match = filename.match(/^(.*?)\.(\w+)?$/);
+    console.log(match);
+    const name = match[1];
+    const extension = match[2] ?? null;
+    if (extension !== "js") return;
+
+    const command = await import(filepath);
+    console.log(command[name]);
+    commands.set(name, command[name]);
+
+    if (command.aliases)
+      command.aliases.forEach((alias) => commands.set(alias, command[name]));
+  });
+  node.directories.forEach((directory) => loadCommands(directory));
+};
+await loadCommands(commandDirTree);
 
 // export
 const handlePrefixCommand = async (message) => {
