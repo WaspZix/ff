@@ -2,11 +2,10 @@
 
 import fs from "fs/promises";
 import randomOf from "../utility/randomOf.js";
-import { EmbedBuilder } from "@discordjs/builders";
+import { EmbedBuilder } from "discord.js";
 import { joinVoiceChannel } from "@discordjs/voice";
 import disconnectOnInactivity from "../utility/disconnectOnInactivity.js";
 import oeis from "./oeis.js";
-import ds3 from "./ds3.js";
 import { DirectoryTrackPlayer } from "../player/DirectoryTrackPlayer.js";
 import { readdirSync } from "fs";
 import { tree } from "../utility/tree.js";

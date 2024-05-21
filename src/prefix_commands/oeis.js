@@ -1,6 +1,6 @@
 // src/prefix_commands/oeis.js
 
-import { EmbedBuilder } from "@discordjs/builders";
+import { EmbedBuilder } from "discord.js";
 import randomOf from "../utility/randomOf.js";
 
 const oeis = async (message) => {
